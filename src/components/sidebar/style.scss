@@ -1,0 +1,145 @@
+.sidebar {
+  width: 280px;
+  transition: all 0.3s ease;
+  background: white;
+  // border-right: 1px solid gray;
+  box-shadow: 4px 0px 8px rgba(0, 0, 0, 0.1);
+  animation: expandWidth 0.4s ease-in-out forwards;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: unset;
+  z-index: 99;
+
+  &.collapsed {
+    width: 0;
+    padding: 0;
+
+    .sidebar__header {
+      display: none;
+    }
+
+    .sidebar__nav {
+      display: none;
+    }
+
+    .sidebar__toggle {
+      left: 10px;
+      right: unset;
+    }
+  }
+
+  &__toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: #666;
+    padding: 5px;
+    transition: all 0.3s ease;
+    z-index: 100;
+
+    &:hover {
+      color: #333;
+    }
+  }
+
+  &__header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    margin-top: 20px;
+
+    &--logo {
+      width: 48px;
+      height: 48px;
+      margin-right: 1rem;
+    }
+
+    &--title {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 44px;
+      color: #000;
+    }
+  }
+
+  &__nav {
+    margin-top: 2rem;
+
+    &--item {
+      position: relative;
+      margin-bottom: 2rem;
+      height: 2rem;
+      display: flex;
+      justify-content: unset;
+      align-items: center;
+
+      a {
+        transition: all 0.3s linear;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+
+        .icon {
+          width: 35px;
+          height: 27px;
+          margin-right: 1rem;
+        }
+
+        strong {
+          font-size: 18px;
+          font-weight: 400;
+          color: #000;
+          line-height: 24px;
+        }
+
+        &::after {
+          content: "";
+          display: none;
+          background-color: #1565d8;
+          border-radius: 8px;
+          width: 6px;
+          height: 48px;
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: unset;
+        }
+      }
+
+      .active,
+      a:hover {
+        svg {
+          stroke: #1565d8;
+          fill: #1565d8;
+        }
+
+        strong {
+          color: #333;
+        }
+
+        &::after {
+          display: block;
+        }
+      }
+    }
+  }
+}
+
+@keyframes expandWidth {
+  from {
+    transform: translateX(280px);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}

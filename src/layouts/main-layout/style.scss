@@ -1,0 +1,15 @@
+.main-layout {
+    display: flex;
+    justify-content: center;
+
+    &__sidebar {
+        width: 280px;
+    }
+
+    &__right {
+        flex-grow: 1 !important;
+        width: calc(100vw - 280px);
+
+    }
+
+}

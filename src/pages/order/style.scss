@@ -1,0 +1,38 @@
+.order-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+    position: relative;
+
+    .dashboard-table {
+        width: 95%;
+        max-height: 70vh;
+        overflow-y: auto;
+        margin-top: 40px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        border-radius: 7px;
+
+        .ant-table {
+            font-size: 14px;
+        }
+
+        .ant-table-cell {
+            padding: 8px; // Giảm padding trong các ô
+            border-right: 1px solid #ebebeb; // Ngăn cách cột
+        }
+
+        .ant-table-thead>tr>th {
+            background: #f5f5f5;
+            font-weight: bold;
+        }
+
+        .ant-table-tbody>tr>td {
+            text-align: center;
+        }
+
+        img {
+            border-radius: 4px;
+        }
+    }
+}

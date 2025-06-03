@@ -1,0 +1,75 @@
+.formUpdateAccount {
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+  }
+
+  .item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    label {
+      font-weight: 500;
+      color: #333;
+      font-size: 13px;
+    }
+
+    .form-control {
+      padding: 6px 10px;
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      font-size: 13px;
+      transition: all 0.3s;
+      width: 100%;
+      min-height: 34px;
+      box-sizing: border-box;
+      background: #fff;
+      display: block;
+
+      &:hover {
+        border-color: #40a9ff;
+      }
+
+      &:focus {
+        border-color: #40a9ff;
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        outline: none;
+      }
+    }
+
+    select.form-control {
+      cursor: pointer;
+      background-color: white;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      height: 34px;
+      line-height: 22px;
+      padding: 6px 10px;
+      margin: 0;
+    }
+
+    input[type="file"].form-control {
+      padding: 6px 10px;
+      min-height: 34px;
+      cursor: pointer;
+      background: #fff;
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      font-size: 13px;
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    
+  }
+}

@@ -1,0 +1,16 @@
+.formUpdateAccount {
+    .item {
+        display: flex;
+        align-items: center;
+        margin-top: 20px;
+
+        input {
+            width: 350px;
+            height: 25px;
+        }
+
+        select {
+            margin-left: 42px;
+        }
+    }
+}
