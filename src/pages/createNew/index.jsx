@@ -40,16 +40,14 @@ function CreateNew() {
   const fetchApi = async () => {
     try {
       setLoading(true);
-      const categoriesData = await get("category/get-all-category");
-      const departuresData = await get("departure/get-all-departure");
-      const destinationsData = await get("destination/get-tree");
-      const transportationsData = await get(
-        "transportation/get-all-transportation"
-      );
-      setCategories(categoriesData.categories || []);
-      setDepartures(departuresData.departures || []);
-      setDestinations(destinationsData || []);
-      setTransportations(transportationsData.transportations || []);
+      const categoriesData = await get("categories");
+      const departuresData = await get("departures");
+      const destinationsData = await get("destinations");
+      const transportationsData = await get("transportations");
+      setCategories(categoriesData.data || []);
+      setDepartures(departuresData.data || []);
+      setDestinations(destinationsData.data || []);
+      setTransportations(transportationsData.data || []);
       setLoading(false);
     } catch (error) {
       console.error("Lỗi khi gọi API:", error);
@@ -84,7 +82,7 @@ function CreateNew() {
         vehicle: values.vehicle || "",
         promotion: values.promotion || "",
         suitableObject: values.suitableObject || "",
-      })
+      }),
     );
 
     // Thêm lịch trình vào FormData (nếu có)
@@ -162,14 +160,16 @@ function CreateNew() {
           <Form.Item
             label="Danh mục"
             name="categoryId"
-            rules={[{ required: true, message: "Vui lòng chọn category" }]}
+            rules={[{ required: true, message: "Vui lòng chọn danh mục" }]}
           >
             <Select placeholder="Chọn category">
-              {categories.map((category) => (
-                <Option key={category.id} value={category.id}>
-                  {category.title}
-                </Option>
-              ))}
+              {categories
+                .filter((category) => category.inActive)
+                .map((category) => (
+                  <Option key={category.id} value={category.id}>
+                    {category.name}
+                  </Option>
+                ))}
             </Select>
           </Form.Item>
 
@@ -182,11 +182,13 @@ function CreateNew() {
             ]}
           >
             <Select placeholder="Chọn điểm khởi hành">
-              {departures.map((departure) => (
-                <Option key={departure.id} value={departure.id}>
-                  {departure.title}
-                </Option>
-              ))}
+              {departures
+                .filter((departure) => departure.inActive)
+                .map((departure) => (
+                  <Option key={departure.id} value={departure.id}>
+                    {departure.name}
+                  </Option>
+                ))}
             </Select>
           </Form.Item>
 
@@ -208,11 +210,13 @@ function CreateNew() {
             rules={[{ required: true, message: "Vui lòng chọn phương tiện" }]}
           >
             <Select placeholder="Chọn phương tiện">
-              {transportations.map((transportation) => (
-                <Option key={transportation.id} value={transportation.id}>
-                  {transportation.title}
-                </Option>
-              ))}
+              {transportations
+                .filter((t) => t.inActive)
+                .map((transportation) => (
+                  <Option key={transportation.id} value={transportation.id}>
+                    {transportation.name}
+                  </Option>
+                ))}
             </Select>
           </Form.Item>
 
@@ -363,7 +367,7 @@ function CreateNew() {
                   validator: async (_, tourDetail) => {
                     if (!tourDetail || tourDetail.length < 1) {
                       return Promise.reject(
-                        new Error("Chưa có thông tin tour")
+                        new Error("Chưa có thông tin tour"),
                       );
                     }
                   },
