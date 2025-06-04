@@ -120,10 +120,10 @@ function Account() {
     },
     {
       title: "Tạo lúc",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (createdAt) =>
-        createdAt ? moment(createdAt).format("DD-MM-YYYY") : "Không rõ",
+      dataIndex: "createdDate",
+      key: "createdDate",
+      render: (createdDate) =>
+        createdDate ? moment(createdDate).format("DD-MM-YYYY") : "Không rõ",
     },
     {
       title: "Hành động",
