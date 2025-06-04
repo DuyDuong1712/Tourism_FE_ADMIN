@@ -38,7 +38,7 @@ function Tour() {
     fromDate: "",
     transTypeId: "",
     categoryId: "",
-    status: "",
+    inActive: "",
     isFeatured: "",
     sortOrder: "",
     title: "",
@@ -64,18 +64,18 @@ function Tour() {
         destinationsData,
         transportationsData,
       ] = await Promise.all([
-        get("tours/get-all-tour", filters),
-        get("category/get-all-category"),
-        get("departure/get-all-departure"),
-        get("destination/get-tree"),
-        get("transportation/get-all-transportation"),
+        get("tours", filters),
+        get("categories"),
+        get("departures"),
+        get("destinations"),
+        get("transportations"),
       ]);
 
-      setCategories(categoriesData.categories || []);
-      setDepartures(departuresData.departures || []);
-      setDestinations(destinationsData || []);
-      setTransportations(transportationsData.transportations || []);
-      setTour(response);
+      setCategories(categoriesData.data || []);
+      setDepartures(departuresData.data || []);
+      setDestinations(destinationsData.data || []);
+      setTransportations(transportationsData.data || []);
+      setTour(response.data || []);
     } catch (error) {
       message.error("Lỗi khi tải dữ liệu tour!");
     } finally {
@@ -87,10 +87,10 @@ function Tour() {
     fetchDataTour();
   }, [filters]);
 
-  const handleStatusChange = async (tourId, status) => {
+  const handleinActiveChange = async (tourId, inActive) => {
     setLoading(true);
     try {
-      await patch(`tours/status/${tourId}`, { status: !status });
+      await patch(`tours/inActive/${tourId}`, { inActive: !inActive });
       message.success("Cập nhật trạng thái tour thành công!");
       fetchDataTour();
     } catch (error) {
@@ -150,7 +150,7 @@ function Tour() {
       fromDate: "",
       transTypeId: "",
       categoryId: "",
-      status: "",
+      inActive: "",
       isFeatured: "",
       sortOrder: "",
       title: "",
@@ -236,21 +236,30 @@ function Tour() {
       ),
     },
     {
-      title: "Mã tour",
-      dataIndex: "code",
-      key: "code",
+      title: "Trạng thái",
+      key: "inActive",
+      dataIndex: "inActive",
+      render: (inActive, record) => (
+        <Tag
+          color={inActive ? "green" : "red"}
+          onClick={() => handleinActiveChange(record.id, inActive)}
+          className="button-change-inActive"
+        >
+          {inActive ? "Hoạt động" : "Không hoạt động"}
+        </Tag>
+      ),
     },
     {
-      title: "Trạng thái",
-      key: "status",
-      dataIndex: "status",
-      render: (status, record) => (
+      title: "Hoạt động",
+      key: "inActive",
+      dataIndex: "inActive",
+      render: (inActive, record) => (
         <Tag
-          color={status ? "green" : "red"}
-          onClick={() => handleStatusChange(record.id, status)}
-          className="button-change-status"
+          color={inActive ? "green" : "red"}
+          onClick={() => handleinActiveChange(record.id, inActive)}
+          className="button-change-inActive"
         >
-          {status ? "Hoạt động" : "Không hoạt động"}
+          {inActive ? "Hoạt động" : "Không hoạt động"}
         </Tag>
       ),
     },
@@ -262,7 +271,7 @@ function Tour() {
         <Tag
           color={isFeatured ? "green" : "red"}
           onClick={() => handleFeaturedChange(record.id, isFeatured)}
-          className="button-change-status"
+          className="button-change-inActive"
         >
           {isFeatured ? "Nổi bật" : "Không nổi bật"}
         </Tag>
@@ -270,12 +279,41 @@ function Tour() {
     },
     {
       title: "Giá",
-      dataIndex: "adultPrice",
-      key: "adultPrice",
-      render: (adultPrice) => adultPrice.toLocaleString(),
+      key: "price",
+      render: (_, record) => (
+        <div>
+          <div>
+            <strong>Người lớn:</strong> {record.adultPrice.toLocaleString()} đ
+          </div>
+          <div>
+            <strong>Trẻ em:</strong> {record.childrenPrice.toLocaleString()} đ
+          </div>
+          <div>
+            <strong>Trẻ nhỏ:</strong> {record.childPrice.toLocaleString()} đ
+          </div>
+          <div>
+            <strong>Em bé:</strong> {record.babyPrice.toLocaleString()} đ
+          </div>
+        </div>
+      ),
     },
     {
       title: "Danh mục",
+      dataIndex: "categories",
+      key: "categories",
+    },
+    {
+      title: "Tổng số chỗ",
+      dataIndex: "categories",
+      key: "categories",
+    },
+    {
+      title: "Số chỗ đã đặt",
+      dataIndex: "categories",
+      key: "categories",
+    },
+    {
+      title: "Số chỗ còn lại",
       dataIndex: "categories",
       key: "categories",
     },
@@ -363,8 +401,8 @@ function Tour() {
           placeholder="Chọn"
           onChange={(value) => setValueCheckbox(value)}
         >
-          <Select.Option value="status-true">Hoạt động</Select.Option>
-          <Select.Option value="status-false">Không hoạt động</Select.Option>
+          <Select.Option value="inActive-true">Hoạt động</Select.Option>
+          <Select.Option value="inActive-false">Không hoạt động</Select.Option>
           <Select.Option value="isFeatured-true">Nổi bật</Select.Option>
           <Select.Option value="isFeatured-false">Không nổi bật</Select.Option>
           <Select.Option value="delete-true">Xóa</Select.Option>
@@ -470,7 +508,7 @@ function Tour() {
         <Select
           style={{ width: 200, marginRight: 10 }}
           placeholder="Trạng thái"
-          onChange={(value) => setFilters({ ...filters, status: value })}
+          onChange={(value) => setFilters({ ...filters, inActive: value })}
         >
           <Option value="1">Hoạt động</Option>
           <Option value="0">Không hoạt động</Option>

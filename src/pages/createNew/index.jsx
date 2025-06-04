@@ -30,11 +30,46 @@ function CreateNew() {
   const [departures, setDepartures] = useState([]);
   const [destinations, setDestinations] = useState([]);
   const [transportations, setTransportations] = useState([]);
+  const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleUploadChange = ({ fileList }) => {
     setFileList(fileList);
+  };
+
+  // Hàm xây dựng cây phân cấp cho điểm đến
+  const buildTree = (items) => {
+    const map = {};
+    const tree = [];
+
+    items.forEach((item) => {
+      map[item.id] = { ...item, children: [] };
+    });
+
+    items.forEach((item) => {
+      if (item.parentId && map[item.parentId]) {
+        map[item.parentId].children.push(map[item.id]);
+      } else {
+        tree.push(map[item.id]);
+      }
+    });
+
+    return tree;
+  };
+
+  // Hàm render danh sách phân cấp cho điểm đến
+  const renderDestinations = (items, level = 0) => {
+    return items.map((destination) => (
+      <>
+        <Option key={destination.id} value={destination.id}>
+          {`${"---".repeat(level)} ${destination.name}`}
+        </Option>
+        {destination.children && destination.children.length > 0 && (
+          <>{renderDestinations(destination.children, level + 1)}</>
+        )}
+      </>
+    ));
   };
 
   const fetchApi = async () => {
@@ -46,7 +81,7 @@ function CreateNew() {
       const transportationsData = await get("transportations");
       setCategories(categoriesData.data || []);
       setDepartures(departuresData.data || []);
-      setDestinations(destinationsData.data || []);
+      setDestinations(buildTree(destinationsData.data) || []);
       setTransportations(transportationsData.data || []);
       setLoading(false);
     } catch (error) {
@@ -59,6 +94,7 @@ function CreateNew() {
     fetchApi();
   }, []);
 
+  // Khi nhấn nút tạo tour
   const onFinish = async () => {
     setLoading(true);
     const values = form.getFieldValue();
@@ -66,11 +102,12 @@ function CreateNew() {
 
     // Thêm các trường dữ liệu thông thường vào FormData
     formData.append("title", values.title || "");
-    formData.append("isFeatured", values.isFeatured || false);
+    formData.append("isFeatured", values.isFeatured ?? false);
     formData.append("categoryId", values.categoryId || "");
     formData.append("destinationId", values.destinationId || "");
     formData.append("departureId", values.departureId || "");
     formData.append("transportationId", values.transportationId || "");
+    formData.append("description", values.description || "");
 
     // Thêm thông tin lồng nhau vào FormData
     formData.append(
@@ -102,8 +139,13 @@ function CreateNew() {
       }
     });
 
+    // Log FormData
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+
     try {
-      const response = await postForm("tours/create", formData);
+      const response = await postForm("tours", formData);
       if (response) {
         message.success("Tạo mới tour thành công!");
         setLoading(false);
@@ -115,18 +157,7 @@ function CreateNew() {
       message.error("Tạo mới tour thất bại, vui lòng thử lại!");
     }
   };
-  const renderDestinations = (items, level = 0) => {
-    return items.map((destination) => (
-      <>
-        <Option key={destination.id} value={destination.id}>
-          {`${"---".repeat(level)} ${destination.title}`}
-        </Option>
-        {destination.children && destination.children.length > 0 && (
-          <>{renderDestinations(destination.children, level + 1)}</>
-        )}
-      </>
-    ));
-  };
+
   const currencyFormatter = (value) => {
     if (!value) return "";
     return `${value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")} ₫`;
@@ -151,9 +182,9 @@ function CreateNew() {
           <Form.Item
             label="Tiêu đề"
             name="title"
-            rules={[{ required: true, message: "Vui lòng nhập title" }]}
+            rules={[{ required: true, message: "Vui lòng nhập tên tour" }]}
           >
-            <Input placeholder="Nhập title" />
+            <Input placeholder="Nhập tên tour" />
           </Form.Item>
 
           {/* Category ID */}
@@ -198,7 +229,12 @@ function CreateNew() {
             name="destinationId"
             rules={[{ required: true, message: "Vui lòng chọn điểm đến" }]}
           >
-            <Select placeholder="Chọn điểm đến">
+            <Select
+              style={{ width: 200, marginBottom: 20 }}
+              placeholder="Chọn điểm đến"
+              allowClear
+            >
+              <Option value="">Tất cả</Option>
               {renderDestinations(destinations)}
             </Select>
           </Form.Item>
@@ -218,6 +254,26 @@ function CreateNew() {
                   </Option>
                 ))}
             </Select>
+          </Form.Item>
+
+          {/* Title */}
+          <Form.Item
+            label="Mô tả tour"
+            name="description"
+            rules={[
+              {
+                required: true,
+                message: "Vui lòng nhập mô tả chi tiết về tour",
+              },
+            ]}
+          >
+            <TextArea
+              autoSize={{
+                minRows: 4,
+                maxRows: 7,
+              }}
+              placeholder="Nhập mô tả tour"
+            />
           </Form.Item>
 
           {/* Information */}
@@ -266,6 +322,9 @@ function CreateNew() {
           {/* Schedule */}
           <div className="form-list-title">Lịch trình: </div>
           <div className="form-list">
+            {/* //Đây là thành phần dùng để xử lý mảng giá trị trong Form (ví dụ: nhiều ngày lịch trình). */}
+            {/* name="schedule": tên trường mảng trong form, sẽ tạo ra một mảng */}
+            {/* schedule = [{(day, title, information)}, ...]. */}
             <Form.List
               name="schedule"
               initialValue={[{ title: "", information: "" }]}
@@ -279,6 +338,9 @@ function CreateNew() {
                 },
               ]}
             >
+              {/* fields: danh sách các trường hiện có trong mảng schedule. Mỗi field có key và name. 
+              add(): thêm một phần tử mới vào mảng.
+              remove(name): xóa phần tử tại vị trí name. */}
               {(fields, { add, remove }) => (
                 <>
                   {fields.map(({ key, name }, index) => (
@@ -329,6 +391,8 @@ function CreateNew() {
                       )}
                     </div>
                   ))}
+                  {/* Thêm một ngày lịch trình mới, mặc định các giá trị sẽ là
+                  undefined hoặc rỗng. */}
                   <Space>
                     <Button
                       type="dashed"
