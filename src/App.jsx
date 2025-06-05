@@ -16,6 +16,7 @@ import Permissions from "./pages/permissions";
 import Account from "./pages/account";
 import PrivateRoute from "./components/privateRoute";
 import EditTour from "./pages/editTour/";
+import TourIdDetail from "./pages/tour/tourIdDetail";
 import checkPermission from "./utils/axios-http/checkPermission";
 import OrderDetail from "./pages/order/detail";
 import OrderEdit from "./pages/order/edit";
@@ -196,6 +197,10 @@ function App() {
             {
               path: "/accounts",
               element: <Account />,
+            },
+            {
+              path: "/tour-view-detail/:tourID",
+              element: <TourIdDetail />,
             },
             {
               path: "/tour-detail/:tourID",

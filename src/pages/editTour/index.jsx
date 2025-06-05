@@ -14,14 +14,13 @@ import {
 const { RangePicker } = DatePicker;
 const { TextArea } = Input;
 import "./style.scss";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   UploadOutlined,
   LoadingOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import { get, patchForm, postForm } from "../../utils/axios-http/axios-http";
-import { useNavigate } from "react-router-dom";
+import { get, patchForm } from "../../utils/axios-http/axios-http";
 import moment from "moment";
 
 function EditTour() {
@@ -40,134 +39,178 @@ function EditTour() {
     setFileList(fileList);
   };
 
+  // Hàm xây dựng cây phân cấp cho điểm đến
+  const buildTree = (items) => {
+    const map = {};
+    const tree = [];
+
+    items.forEach((item) => {
+      map[item.id] = { ...item, children: [] };
+    });
+
+    items.forEach((item) => {
+      if (item.parentId && map[item.parentId]) {
+        map[item.parentId].children.push(map[item.id]);
+      } else {
+        tree.push(map[item.id]);
+      }
+    });
+
+    return tree;
+  };
+
+  // Hàm render danh sách phân cấp cho điểm đến
+  const renderDestinations = (items, level = 0) => {
+    return items.map((destination) => (
+      <>
+        <Option key={destination.id} value={destination.id}>
+          {`${"---".repeat(level)} ${destination.name}`}
+        </Option>
+        {destination.children && destination.children.length > 0 && (
+          <>{renderDestinations(destination.children, level + 1)}</>
+        )}
+      </>
+    ));
+  };
+
   const fetchApi = async () => {
     try {
       setLoading(true);
       const [
-        tourDetail,
+        tourResponse,
         categoriesData,
         departuresData,
         destinationsData,
         transportationsData,
       ] = await Promise.all([
-        get(`tours/detail/${tourId}`),
-        get("category/get-all-category"),
-        get("departure/get-all-departure"),
-        get("destination/get-tree"),
-        get("transportation/get-all-transportation"),
+        get(`tours/${tourId}`),
+        get("categories"),
+        get("departures"),
+        get("destinations"),
+        get("transportations"),
       ]);
 
-      setCategories(categoriesData.categories || []);
-      setDepartures(departuresData.departures || []);
-      setDestinations(destinationsData || []);
-      setTransportations(transportationsData.transportations || []);
+      const tourDetail = tourResponse.data;
 
-      const tourDetailFormat = tourDetail.tourDetails.map((item) => ({
-        ...item,
-        dateRange: [moment(item.dayStart), moment(item.dayReturn)],
-      }));
+      setCategories(categoriesData.data || []);
+      setDepartures(departuresData.data || []);
+      setDestinations(buildTree(destinationsData.data) || []);
+      setTransportations(transportationsData.data || []);
 
+      // Format tourDetails
+      const tourDetailFormat =
+        tourDetail.tourDetails?.map((item) => ({
+          ...item,
+          dateRange: [moment(item.dayStart), moment(item.dayReturn)],
+        })) || [];
+
+      // Gán giá trị vào form
       form.setFieldsValue({
-        title: tourDetail.tour.title,
-        categoryId: tourDetail.category.id,
-        departureId: tourDetail.departure.id,
-        destinationId: tourDetail.destination.id,
-        transportationId: tourDetail.transportation.id,
-        schedule: tourDetail.schedule || [],
-        tourDetail: tourDetailFormat || [],
-        attractions: tourDetail.information?.attractions || "",
-        cuisine: tourDetail.information?.cuisine || "",
-        suitableObject: tourDetail.information?.suitableObject || "",
-        idealTime: tourDetail.information?.idealTime || "",
-        vehicle: tourDetail.information?.vehicle || "",
-        promotion: tourDetail.information?.promotion || "",
+        title: tourDetail.title,
+        categoryId: tourDetail.catagoryId, // Giữ nguyên key từ API
+        departureId: tourDetail.departureId,
+        destinationId: tourDetail.destinationId,
+        transportationId: tourDetail.transportId,
+        description: tourDetail.description,
+        schedule: tourDetail.tourSchedules || [],
+        tourDetail: tourDetailFormat,
+        attractions: tourDetail.tourInformation?.attractions || "",
+        cuisine: tourDetail.tourInformation?.cuisine || "",
+        suitableObject: tourDetail.tourInformation?.suitableObject || "",
+        idealTime: tourDetail.tourInformation?.idealTime || "",
+        vehicle: tourDetail.tourInformation?.vehicle || "",
+        promotion: tourDetail.tourInformation?.promotion || "",
       });
-      const images = tourDetail.images.map((image) => {
-        return {
+
+      // Xử lý images
+      const images =
+        tourDetail.images?.map((image) => ({
           uid: image.id,
-          url: image.source,
-        };
-      });
+          url: image.imageUrl, // Sử dụng imageUrl từ API
+        })) || [];
 
       setFileList(images);
       setLoading(false);
     } catch (error) {
-      console.error("Lỗi khi gọi API:", error);
+      console.error("Lỗi khi gọi API:", error.message, error.stack);
+      message.error("Không thể tải dữ liệu tour, vui lòng thử lại!");
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchApi();
-  }, []);
+  }, [tourId]);
 
+  //Cập nhật tour
   const onFinish = async () => {
-    const values = form.getFieldValue();
-    const formData = new FormData();
-    setLoading(true);
-
-    // Thêm các trường dữ liệu thông thường vào FormData
-    formData.append("title", values.title || "");
-    formData.append("isFeatured", values.isFeatured || false);
-    formData.append("categoryId", values.categoryId || "");
-    formData.append("destinationId", values.destinationId || "");
-    formData.append("departureId", values.departureId || "");
-    formData.append("transportationId", values.transportationId || "");
-
-    // Thêm thông tin lồng nhau vào FormData
-    formData.append(
-      "information",
-      JSON.stringify({
-        attractions: values.attractions || "",
-        cuisine: values.cuisine || "",
-        idealTime: values.idealTime || "",
-        suitableObject: values.suitableObject || "",
-        vehicle: values.vehicle || "",
-        promotion: values.promotion || "",
-      })
-    );
-
-    // Thêm lịch trình vào FormData (nếu có)
-    formData.append("schedule", JSON.stringify(values.schedule || []));
-
-    // Thêm chi tiết tour
-
-    formData.append("tour_detail", JSON.stringify(values.tourDetail || []));
-
-    fileList.forEach((file) => {
-      if (file.originFileObj) {
-        formData.append("images", file.originFileObj);
-      }
-      if (file.url != "") {
-        formData.append("images", file.url);
-      }
-    });
-
     try {
-      const response = await patchForm(`tours/edit/${tourId}`, formData);
+      const values = form.getFieldsValue();
+      const formData = new FormData();
+      setLoading(true);
+
+      // Thêm các trường dữ liệu thông thường vào FormData
+      formData.append("title", values.title || "");
+      formData.append("isFeatured", values.isFeatured ?? false);
+      formData.append("categoryId", values.categoryId || "");
+      formData.append("destinationId", values.destinationId || "");
+      formData.append("departureId", values.departureId || "");
+      formData.append("transportationId", values.transportationId || "");
+      formData.append("description", values.description || "");
+
+      // Thêm thông tin lồng nhau vào FormData
+      formData.append(
+        "information",
+        JSON.stringify({
+          attractions: values.attractions || "",
+          cuisine: values.cuisine || "",
+          idealTime: values.idealTime || "",
+          suitableObject: values.suitableObject || "",
+          vehicle: values.vehicle || "",
+          promotion: values.promotion || "",
+        }),
+      );
+
+      // Thêm lịch trình vào FormData
+      formData.append("schedule", JSON.stringify(values.schedule || []));
+
+      // Thêm chi tiết tour
+      const tourDetailFormat =
+        values.tourDetail?.map((detail) => ({
+          ...detail,
+          dayStart: detail.dateRange[0]?.toISOString(),
+          dayReturn: detail.dateRange[1]?.toISOString(),
+          dateRange: undefined, // Xóa dateRange khỏi object
+        })) || [];
+      formData.append("tour_detail", JSON.stringify(tourDetailFormat || []));
+
+      // Thêm images vào FormData
+      fileList.forEach((file) => {
+        if (file.originFileObj) {
+          formData.append("images", file.originFileObj);
+        }
+        if (file.url != "") {
+          formData.append("images", file.url);
+        }
+      });
+
+      // Log FormData
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
+
+      const response = await patchForm(`tours/${tourId}`, formData);
       if (response) {
         message.success("Cập nhật tour thành công!");
         form.resetFields();
         navigate("/tour");
-        setLoading(false);
       }
     } catch (error) {
-      console.error("Đã xảy ra lỗi:", error);
+      console.error("Lỗi khi cập nhật tour:", error.message, error.stack);
       message.error("Cập nhật tour thất bại, vui lòng thử lại!");
+    } finally {
       setLoading(false);
     }
-  };
-  const renderDestinations = (items, level = 0) => {
-    return items.map((destination) => (
-      <React.Fragment key={destination.id}>
-        <Option value={destination.id}>
-          {`${"---".repeat(level)} ${destination.title}`}
-        </Option>
-        {destination.children &&
-          destination.children.length > 0 &&
-          renderDestinations(destination.children, level + 1)}
-      </React.Fragment>
-    ));
   };
 
   const currencyFormatter = (value) => {
@@ -194,16 +237,16 @@ function EditTour() {
           <Form.Item
             label="Danh mục"
             name="categoryId"
-            rules={[{ required: true, message: "Vui lòng chọn category" }]}
+            rules={[{ required: true, message: "Vui lòng chọn danh mục" }]}
           >
-            <Select placeholder="Chọn category">
+            <Select placeholder="Chọn danh mục">
               {categories.map((category) => (
                 <Option key={category.id} value={category.id}>
-                  {category.title}
+                  {category.name}
                 </Option>
               ))}
             </Select>
-          </Form.Item>{" "}
+          </Form.Item>
           {/* Departure ID */}
           <Form.Item
             label="Điểm khởi hành"
@@ -215,11 +258,11 @@ function EditTour() {
             <Select placeholder="Chọn điểm khởi hành">
               {departures.map((departure) => (
                 <Option key={departure.id} value={departure.id}>
-                  {departure.title}
+                  {departure.name}
                 </Option>
               ))}
             </Select>
-          </Form.Item>{" "}
+          </Form.Item>
           {/* Destination ID */}
           <Form.Item
             label="Điểm đến"
@@ -239,11 +282,30 @@ function EditTour() {
             <Select placeholder="Chọn phương tiện">
               {transportations.map((transportation) => (
                 <Option key={transportation.id} value={transportation.id}>
-                  {transportation.title}
+                  {transportation.name}
                 </Option>
               ))}
             </Select>
-          </Form.Item>{" "}
+          </Form.Item>
+          {/* Description */}
+          <Form.Item
+            label="Mô tả tour"
+            name="description"
+            rules={[
+              {
+                required: true,
+                message: "Vui lòng nhập mô tả chi tiết về tour",
+              },
+            ]}
+          >
+            <TextArea
+              autoSize={{
+                minRows: 4,
+                maxRows: 7,
+              }}
+              placeholder="Nhập mô tả tour"
+            />
+          </Form.Item>
           {/* Information */}
           <Form.Item label="Thông tin: " name="information">
             <div className="form-information">
@@ -303,7 +365,7 @@ function EditTour() {
             >
               {(fields, { add, remove }) => (
                 <>
-                  {fields.map(({ key, name, index }) => (
+                  {fields.map(({ key, name }) => (
                     <div key={key} className="schedule-item">
                       <Form.Item
                         label="Ngày"
@@ -319,7 +381,6 @@ function EditTour() {
                           value={name + 1}
                         />
                       </Form.Item>
-
                       <Form.Item
                         label="Tiêu đề"
                         name={[name, "title"]}
@@ -329,7 +390,6 @@ function EditTour() {
                       >
                         <Input placeholder="Nhập title" />
                       </Form.Item>
-
                       <Form.Item
                         label="Thông tin"
                         name={[name, "information"]}
@@ -341,14 +401,10 @@ function EditTour() {
                         ]}
                       >
                         <TextArea
-                          autoSize={{
-                            minRows: 3,
-                            maxRows: 6,
-                          }}
+                          autoSize={{ minRows: 3, maxRows: 6 }}
                           placeholder="Nhập thông tin"
                         />
                       </Form.Item>
-
                       <Space>
                         {fields.length > 1 && (
                           <Button
@@ -389,8 +445,7 @@ function EditTour() {
                   singleRoomSupplementPrice: "",
                   stock: "",
                   discount: "",
-                  dayStart: "",
-                  dayReturn: "",
+                  dateRange: [],
                 },
               ]}
               rules={[
@@ -398,7 +453,7 @@ function EditTour() {
                   validator: async (_, tourDetail) => {
                     if (!tourDetail || tourDetail.length < 1) {
                       return Promise.reject(
-                        new Error("Chưa có thông tin tour")
+                        new Error("Chưa có thông tin tour"),
                       );
                     }
                   },
@@ -432,12 +487,6 @@ function EditTour() {
                         <Form.Item
                           label="Giá trẻ em"
                           name={[name, "childrenPrice"]}
-                          rules={[
-                            {
-                              required: false,
-                              message: "Vui lòng nhập giá trẻ em",
-                            },
-                          ]}
                         >
                           <InputNumber
                             min={0}
@@ -453,12 +502,6 @@ function EditTour() {
                         <Form.Item
                           label="Giá trẻ nhỏ"
                           name={[name, "childPrice"]}
-                          rules={[
-                            {
-                              required: false,
-                              message: "Vui lòng nhập giá trẻ nhỏ",
-                            },
-                          ]}
                         >
                           <InputNumber
                             min={0}
@@ -472,12 +515,6 @@ function EditTour() {
                         <Form.Item
                           label="Giá trẻ sơ sinh"
                           name={[name, "babyPrice"]}
-                          rules={[
-                            {
-                              required: false,
-                              message: "Vui lòng nhập giá trẻ sơ sinh",
-                            },
-                          ]}
                         >
                           <InputNumber
                             min={0}
@@ -493,12 +530,6 @@ function EditTour() {
                         <Form.Item
                           label="Phụ thu phòng đơn"
                           name={[name, "singleRoomSupplementPrice"]}
-                          rules={[
-                            {
-                              required: false,
-                              message: "Vui lòng nhập giá phụ thu phòng đơn",
-                            },
-                          ]}
                         >
                           <InputNumber
                             min={0}
@@ -509,25 +540,15 @@ function EditTour() {
                             style={{ marginRight: 10, width: 300 }}
                           />
                         </Form.Item>
-                        <Form.Item
-                          label="Giảm giá"
-                          name={[name, "discount"]}
-                          rules={[
-                            {
-                              required: false,
-                              message: "Vui lòng nhập phần trăm giảm giá",
-                            },
-                          ]}
-                        >
+                        <Form.Item label="Giảm giá" name={[name, "discount"]}>
                           <InputNumber
                             min={0}
-                            max={1000}
+                            max={100}
                             step={1}
                             style={{ marginRight: 10, width: 300 }}
                           />
                         </Form.Item>
                       </div>
-
                       <div className="item">
                         <Form.Item
                           label="Stock"
@@ -546,8 +567,6 @@ function EditTour() {
                             style={{ marginRight: 10, width: 300 }}
                           />
                         </Form.Item>
-
-                        {/* Ngày đi */}
                         <Form.Item
                           label="Chọn khoảng thời gian"
                           name={[name, "dateRange"]}
@@ -561,7 +580,6 @@ function EditTour() {
                           <RangePicker showTime />
                         </Form.Item>
                       </div>
-
                       <Space>
                         {fields.length > 1 && (
                           <Button
@@ -580,18 +598,16 @@ function EditTour() {
                       type="dashed"
                       onClick={() => add()}
                       icon={<PlusOutlined />}
-                    ></Button>
+                    >
+                      Thêm chi tiết tour
+                    </Button>
                   </Space>
                 </>
               )}
             </Form.List>
           </div>
           {/* Images */}
-          <Form.Item
-            label="Tải ảnh"
-            name={[name, "image"]}
-            rules={[{ required: false, message: "Vui lòng tải lên ảnh" }]}
-          >
+          <Form.Item label="Tải ảnh">
             <Upload
               listType="picture-card"
               fileList={fileList}

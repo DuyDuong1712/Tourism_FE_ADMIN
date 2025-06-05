@@ -21,7 +21,7 @@ import moment from "moment";
 const { Option } = Select;
 const { Search } = Input;
 
-function Tour() {
+function TourIdDetail() {
   const [tour, setTour] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
@@ -749,4 +749,4 @@ function Tour() {
   );
 }
 
-export default Tour;
+export default TourIdDetail;
