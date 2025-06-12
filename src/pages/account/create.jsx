@@ -12,9 +12,21 @@ const ModalCreateAccount = ({ onClose, fetchAccounts, open, roles }) => {
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState(null);
 
+  // const handleImageChange = (info) => {
+  //   if (info.file.status === "done" || info.file.status === "uploading") {
+  //     setImage(info.file.originFileObj);
+  //   }
+  // };
+
   const handleImageChange = (info) => {
-    if (info.file.status === "done" || info.file.status === "uploading") {
-      setImage(info.file.originFileObj);
+    console.log("File info:", info); // Debug
+
+    if (info.fileList.length > 0) {
+      const file = info.fileList[0].originFileObj || info.fileList[0];
+      setImage(file);
+      console.log("Image set:", file); // Debug
+    } else {
+      setImage(null);
     }
   };
 
@@ -29,6 +41,12 @@ const ModalCreateAccount = ({ onClose, fetchAccounts, open, roles }) => {
       });
       if (image) {
         formData.append("image", image);
+        console.log("Image appended to FormData"); // Debug
+      }
+
+      // Debug FormData
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
       }
 
       await postForm("users", formData);
@@ -60,7 +78,7 @@ const ModalCreateAccount = ({ onClose, fetchAccounts, open, roles }) => {
       width={500}
     >
       <Form form={form} layout="vertical">
-        <Form.Item label="Ảnh đại diện" name="image">
+        <Form.Item label="Ảnh đại diện">
           <Upload
             beforeUpload={() => false}
             onChange={handleImageChange}

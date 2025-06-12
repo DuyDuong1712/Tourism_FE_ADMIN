@@ -5,6 +5,7 @@ import {
   patch,
   postForm,
   patchForm,
+  deleteMethod,
 } from "../../utils/axios-http/axios-http";
 import {
   Space,
@@ -171,9 +172,7 @@ function Destination() {
   const fetchFilteredDestinations = async (parentId) => {
     try {
       if (parentId) {
-        const filteredData = await get(
-          `destinations/${parentId}/children`,
-        );
+        const filteredData = await get(`destinations/${parentId}/children`);
         setFilteredDestinations(filteredData.data);
       } else {
         setFilteredDestinations([]);
@@ -319,7 +318,7 @@ function Destination() {
   const handleDelete = async (destination) => {
     setLoading(true);
     try {
-      await patch(`destinations/${destination.id}`, {});
+      await deleteMethod(`destinations/${destination.id}`, {});
       message.success("Xóa địa điểm thành công");
       fetchApi();
     } catch (error) {

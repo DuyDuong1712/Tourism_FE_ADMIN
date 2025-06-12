@@ -37,117 +37,6 @@ function App() {
       children: [
         {
           // Phân theo permission
-          // element: <MainLayout />,
-          // children: [
-          //   {
-          //     path: "/dashboard",
-          //     element: <Dashboard />,
-          //   },
-          //   {
-          //     path: "/tour",
-          //     element: checkPermission("READ_TOUR") ? <Tour /> : <Dashboard />,
-          //   },
-          //   {
-          //     path: "/categories",
-          //     element: checkPermission("READ_CATEGORY") ? (
-          //       <Category />
-          //     ) : (
-          //       <Dashboard />
-          //     ),
-          //   },
-          //   {
-          //     path: "/departures",
-          //     element: checkPermission("READ_DEPARTURE") ? (
-          //       <Departure />
-          //     ) : (
-          //       <Dashboard />
-          //     ),
-          //   },
-          //   {
-          //     path: "/destinations",
-          //     element: checkPermission("READ_DESTINATION") ? (
-          //       <Destination />
-          //     ) : (
-          //       <Dashboard />
-          //     ),
-          //   },
-          //   {
-          //     path: "/transportations",
-          //     element: checkPermission("READ_TRANSPORTATION") ? (
-          //       <Transportation />
-          //     ) : (
-          //       <Dashboard />
-          //     ),
-          //   },
-          //   {
-          //     path: "/orders",
-          //     element: checkPermission("READ_ORDER") ? (
-          //       <Order />
-          //     ) : (
-          //       <Dashboard />
-          //     ),
-          //   },
-          //   {
-          //     path: "/orders/detail/:orderId",
-          //     element: checkPermission("READ_ORDER") ? (
-          //       <OrderDetail />
-          //     ) : (
-          //       <Dashboard />
-          //     ),
-          //   },
-          //   {
-          //     path: "/orders/edit/:orderId",
-          //     element: checkPermission("UPDATE_ORDER") ? (
-          //       <OrderEdit />
-          //     ) : (
-          //       <Dashboard />
-          //     ),
-          //   },
-          //   {
-          //     path: "/roles",
-          //     element: checkPermission("READ_ROLES") ? <Role /> : <Dashboard />,
-          //   },
-          //   {
-          //     path: "/permissions",
-          //     element: checkPermission("READ_PERMISSIONS") ? (
-          //       <Permissions />
-          //     ) : (
-          //       <Dashboard />
-          //     ),
-          //   },
-          //   {
-          //     path: "/accounts",
-          //     element: checkPermission("READ_ADMIN") ? (
-          //       <Account />
-          //     ) : (
-          //       <Dashboard />
-          //     ),
-          //   },
-          //   {
-          //     path: "/tour-detail/:tourID",
-          //     element: checkPermission("READ_TOUR") ? (
-          //       <TourDetail />
-          //     ) : (
-          //       <Dashboard />
-          //     ),
-          //   },
-          //   {
-          //     path: "/create-new",
-          //     element: checkPermission("CREATE_TOUR") ? (
-          //       <CreateNew />
-          //     ) : (
-          //       <Dashboard />
-          //     ),
-          //   },
-          //   {
-          //     path: "/edit-tour/:tourId",
-          //     element: checkPermission("UPDATE_TOUR") ? (
-          //       <EditTour />
-          //     ) : (
-          //       <Dashboard />
-          //     ),
-          //   },
-          // ],
           element: <MainLayout />,
           children: [
             {
@@ -156,70 +45,188 @@ function App() {
             },
             {
               path: "/tour",
-              element: <Tour />,
+              element: checkPermission("READ_TOUR") ? <Tour /> : <Dashboard />,
             },
             {
               path: "/categories",
-              element: <Category />,
+              element: checkPermission("READ_CATEGORY") ? (
+                <Category />
+              ) : (
+                <Dashboard />
+              ),
             },
             {
               path: "/departures",
-              element: <Departure />,
+              element: checkPermission("READ_DEPARTURE") ? (
+                <Departure />
+              ) : (
+                <Dashboard />
+              ),
             },
             {
               path: "/destinations",
-              element: <Destination />,
+              element: checkPermission("READ_DESTINATION") ? (
+                <Destination />
+              ) : (
+                <Dashboard />
+              ),
             },
             {
               path: "/transportations",
-              element: <Transportation />,
+              element: checkPermission("READ_TRANSPORTATION") ? (
+                <Transportation />
+              ) : (
+                <Dashboard />
+              ),
             },
             {
               path: "/orders",
-              element: <Order />,
+              element: checkPermission("READ_ORDER") ? (
+                <Order />
+              ) : (
+                <Dashboard />
+              ),
             },
             {
               path: "/orders/detail/:orderId",
-              element: <OrderDetail />,
+              element: checkPermission("READ_ORDER") ? (
+                <OrderDetail />
+              ) : (
+                <Dashboard />
+              ),
             },
             {
               path: "/orders/edit/:orderId",
-              element: <OrderEdit />,
+              element: checkPermission("UPDATE_ORDER") ? (
+                <OrderEdit />
+              ) : (
+                <Dashboard />
+              ),
             },
             {
               path: "/roles",
-              element: <Role />,
+              element: checkPermission("READ_ROLES") ? <Role /> : <Dashboard />,
             },
             {
               path: "/permissions",
-              element: <Permissions />,
+              element: checkPermission("READ_PERMISSIONS") ? (
+                <Permissions />
+              ) : (
+                <Dashboard />
+              ),
             },
             {
               path: "/accounts",
-              element: <Account />,
+              element: checkPermission("READ_ADMIN") ? (
+                <Account />
+              ) : (
+                <Dashboard />
+              ),
             },
             {
-              path: "/tour-view-detail/:tourID",
-              element: <TourIdDetail />,
+              path: "/tour-view-detail",
+              element: checkPermission("READ_TOUR") ? (
+                <TourIdDetail />
+              ) : (
+                <Dashboard />
+              ),
             },
             {
               path: "/tour-detail/:tourID",
-              element: <TourDetail />,
+              element: checkPermission("READ_TOUR") ? (
+                <TourDetail />
+              ) : (
+                <Dashboard />
+              ),
             },
             {
               path: "/create-new",
-              element: <CreateNew />,
+              element: checkPermission("CREATE_TOUR") ? (
+                <CreateNew />
+              ) : (
+                <Dashboard />
+              ),
             },
             {
               path: "/edit-tour/:tourId",
-              element: <EditTour />,
+              element: checkPermission("UPDATE_TOUR") ? (
+                <EditTour />
+              ) : (
+                <Dashboard />
+              ),
             },
           ],
+          // element: <MainLayout />,
+          // children: [
+          //   {
+          //     path: "/dashboard",
+          //     element: <Dashboard />,
+          //   },
+          //   {
+          //     path: "/tour",
+          //     element: <Tour />,
+          //   },
+          //   {
+          //     path: "/categories",
+          //     element: <Category />,
+          //   },
+          //   {
+          //     path: "/departures",
+          //     element: <Departure />,
+          //   },
+          //   {
+          //     path: "/destinations",
+          //     element: <Destination />,
+          //   },
+          //   {
+          //     path: "/transportations",
+          //     element: <Transportation />,
+          //   },
+          //   {
+          //     path: "/orders",
+          //     element: <Order />,
+          //   },
+          //   {
+          //     path: "/orders/detail/:orderId",
+          //     element: <OrderDetail />,
+          //   },
+          //   {
+          //     path: "/orders/edit/:orderId",
+          //     element: <OrderEdit />,
+          //   },
+          //   {
+          //     path: "/roles",
+          //     element: <Role />,
+          //   },
+          //   {
+          //     path: "/permissions",
+          //     element: <Permissions />,
+          //   },
+          //   {
+          //     path: "/accounts",
+          //     element: <Account />,
+          //   },
+          //   {
+          //     path: "/tour-view-detail",
+          //     element: <TourIdDetail />,
+          //   },
+          //   {
+          //     path: "/tour-detail/:tourID",
+          //     element: <TourDetail />,
+          //   },
+          //   {
+          //     path: "/create-new",
+          //     element: <CreateNew />,
+          //   },
+          //   {
+          //     path: "/edit-tour/:tourId",
+          //     element: <EditTour />,
+          //   },
+          // ],
         },
       ],
     },
   ]);
-
 
   return <>{routes}</>;
 }

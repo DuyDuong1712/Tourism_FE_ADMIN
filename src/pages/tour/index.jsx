@@ -114,11 +114,6 @@ function Tour() {
       setTransportations(transportationsData.data || []);
       setTour(response.data || []);
 
-      console.log(response.data);
-      console.log(categoriesData.data);
-      console.log(departuresData.data);
-      console.log(destinationsData.data);
-      console.log(transportationsData.data);
     } catch (error) {
       message.error("Lỗi khi tải dữ liệu tour!");
     } finally {
@@ -296,13 +291,6 @@ function Tour() {
             icon={<EyeOutlined />}
             style={{ marginRight: 1 }}
           ></Button>
-
-          <Button
-            onClick={() => navigate(`/tour-view-detail/${record.id}`)}
-            type="default"
-            icon={<DashOutlined />}
-            style={{ marginLeft: 1 }}
-          />
           {canUpdate && (
             <Button
               onClick={() => navigate(`/edit-tour/${record.id}`)}
@@ -348,7 +336,15 @@ function Tour() {
           onClick={clearFilters}
           style={{ marginRight: 10, marginLeft: "10px" }}
         >
-          Quay lại Quản lý Tour
+          Làm mới
+        </Button>
+        <Button
+          onClick={() => navigate(`/tour-view-detail`)}
+          type="primary"
+          icon={<DashOutlined />}
+          style={{ marginLeft: 1 }}
+        >
+          Xem chi tiết danh sách lịch trình tour
         </Button>
         <Search
           placeholder="Nhập tour muốn tìm kiếm"
