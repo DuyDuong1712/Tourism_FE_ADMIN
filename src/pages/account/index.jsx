@@ -82,7 +82,7 @@ function Account() {
       title: "Số điện thoại",
       dataIndex: "phone",
       key: "phone",
-      render: (phone) => phone || "Chưa có",
+      render: (phone) => phone || "",
     },
     {
       title: "Email",

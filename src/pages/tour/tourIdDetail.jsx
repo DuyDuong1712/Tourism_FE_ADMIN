@@ -33,15 +33,15 @@ function TourIdDetail() {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [valueCheckbox, setValueCheckbox] = useState("");
   const [filters, setFilters] = useState({
-    destinationTo: "",
-    departureFrom: "",
+    destinationId: "",
+    departureId: "",
     fromDate: "",
-    transTypeId: "",
+    transportationId: "",
     categoryId: "",
     inActive: "",
     isFeatured: "",
-    sortOrder: "",
-    title: "",
+    // sortOrder: "",
+    name: "",
   });
 
   const navigate = useNavigate();
@@ -77,14 +77,14 @@ function TourIdDetail() {
   // Hàm render danh sách phân cấp cho điểm đến
   const renderDestinations = (items, level = 0) => {
     return items.map((destination) => (
-      <>
+      <React.Fragment key={destination.id}>
         <Option key={destination.id} value={destination.id}>
           {`${"---".repeat(level)} ${destination.name}`}
         </Option>
-        {destination.children && destination.children.length > 0 && (
-          <>{renderDestinations(destination.children, level + 1)}</>
-        )}
-      </>
+        {destination.children &&
+          destination.children.length > 0 &&
+          renderDestinations(destination.children, level + 1)}
+      </React.Fragment>
     ));
   };
 
@@ -141,7 +141,7 @@ function TourIdDetail() {
     setTypeButtonTwo("primary");
     setLoading(true);
     try {
-      const response = await get("tours/expired-soon", filters);
+      const response = await get("tours/details/expired-soon", filters);
       setTour(response.data || []);
     } catch (error) {
       message.error("Lỗi khi tải dữ liệu tour sắp hết hạn!");
@@ -155,8 +155,8 @@ function TourIdDetail() {
     setTypeButtonTwo("");
     setLoading(true);
     try {
-      const response = await get("tours/expired", filters);
-      setTour(response);
+      const response = await get("tours/details/expired", filters);
+      setTour(response.data || []);
     } catch (error) {
       message.error("Lỗi khi tải dữ liệu tour đã hết hạn!");
     } finally {
@@ -168,10 +168,10 @@ function TourIdDetail() {
     setTypeButtonOne("");
     setTypeButtonTwo("");
     setFilters({
-      destinationTo: "",
-      departureFrom: "",
+      destinationId: "",
+      departureId: "",
       fromDate: "",
-      transTypeId: "",
+      transportationId: "",
       categoryId: "",
       inActive: "",
       isFeatured: "",
@@ -241,7 +241,6 @@ function TourIdDetail() {
           onChange={(value) => handleStatusChange(record.tourDetailId, value)}
         >
           <Option value="SCHEDULED">Lên lịch</Option>
-          <Option value="CONFIRMED">Xác nhận</Option>
           <Option value="IN_PROGRESS">Đang diễn ra</Option>
           <Option value="COMPLETED">Hoàn thành</Option>
           <Option value="CANCELLED">Đã hủy</Option>
@@ -320,7 +319,7 @@ function TourIdDetail() {
   return (
     <div className="tour-container">
       <div style={{ marginBottom: 20 }}>
-        <Select
+        {/* <Select
           style={{ marginRight: 10, width: 200 }}
           placeholder="Chọn"
           onChange={(value) => setValueCheckbox(value)}
@@ -330,7 +329,7 @@ function TourIdDetail() {
           <Select.Option value="isFeatured-true">Nổi bật</Select.Option>
           <Select.Option value="isFeatured-false">Không nổi bật</Select.Option>
           <Select.Option value="delete-true">Xóa</Select.Option>
-        </Select>
+        </Select> */}
         <Button
           onClick={() => navigate(`/tour`)}
           type="primary"
@@ -380,7 +379,7 @@ function TourIdDetail() {
           style={{ width: 200, marginRight: 10 }}
           placeholder="Chọn điểm khởi hành"
           onChange={(value) =>
-            setFilters((prev) => ({ ...prev, departureFrom: value }))
+            setFilters((prev) => ({ ...prev, departureId: value }))
           }
         >
           <Option value="">Tất cả</Option>
@@ -403,7 +402,7 @@ function TourIdDetail() {
           style={{ width: 200, marginRight: 10 }}
           placeholder="Loại phương tiện"
           onChange={(value) =>
-            setFilters((prev) => ({ ...prev, transTypeId: value }))
+            setFilters((prev) => ({ ...prev, transportationId: value }))
           }
         >
           <Option value="">Tất cả</Option>
@@ -448,7 +447,7 @@ function TourIdDetail() {
         </Select>
 
         {/* Add Select for Price */}
-        <Select
+        {/* <Select
           style={{ width: 200, marginRight: 10 }}
           placeholder="Giá"
           onChange={(value) => setFilters({ ...filters, sortOrder: value })}
@@ -456,11 +455,11 @@ function TourIdDetail() {
           <Option value="">Tất cả</Option>
           <Option value="asc">Tăng dần</Option>
           <Option value="desc">Giảm dần</Option>
-        </Select>
+        </Select> */}
       </div>
 
       <Table
-        rowKey="id"
+        rowKey="tourDetailId"
         columns={columns}
         dataSource={tour}
         loading={loading}

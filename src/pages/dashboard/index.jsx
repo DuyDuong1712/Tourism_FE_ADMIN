@@ -29,7 +29,7 @@ Chart.register(
   Title,
   Tooltip,
   Legend,
-  RadialLinearScale
+  RadialLinearScale,
 );
 
 function Dashboard() {
@@ -43,26 +43,56 @@ function Dashboard() {
   });
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [tourStatistics, setTourStatistics] = useState({});
+  const [categoryStatistics, setCategoryStatistics] = useState({});
+  const [departureStatistics, setDepartureStatistics] = useState({});
+  const [destinationStatistics, setDestinationStatistics] = useState({});
+  const [transportationStatistics, setTransportationStatistics] = useState({});
+  const [orderStatistics, setOrderStatistics] = useState({});
+
   useEffect(() => {
     const fetchDashboardData = async () => {
-      const tourResponse = await get("statistics/tours");
-      const categoryResponse = await get("statistics/categories");
-      const departureResponse = await get("statistics/departures");
-      const destinationResponse = await get("statistics/destinations");
-      const transportationResponse = await get("statistics/transportations");
-      const orderResponse = await get("statistics/orders");
+      try {
+        setLoading(true);
+        const tourResponse = await get("tours/statistics");
+        setTourStatistics(tourResponse.data);
+        const categoryResponse = await get("categories/statistics");
+        setCategoryStatistics(categoryResponse.data);
+        const departureResponse = await get("departures/statistics");
+        setDepartureStatistics(departureResponse.data);
+        const destinationResponse = await get("destinations/statistics");
+        setDestinationStatistics(destinationResponse.data);
+        const transportationResponse = await get("transportations/statistics");
+        setTransportationStatistics(transportationResponse.data);
+        const orderResponse = await get("bookings/statistics");
+        setOrderStatistics(orderResponse.data);
 
-      setDashboardData({
-        tours: tourResponse,
-        categories: categoryResponse,
-        departures: departureResponse,
-        destinations: destinationResponse,
-        transportations: transportationResponse,
-        orders: orderResponse,
-      });
+        setDashboardData({
+          tours: tourResponse.data || {},
+          categories: categoryResponse.data || {},
+          departures: departureResponse.data || {},
+          destinations: destinationResponse.data || {},
+          transportations: transportationResponse.data || {},
+          orders: orderResponse.data || {},
+        });
+      } catch (err) {
+        setError("Không thể tải dữ liệu dashboard");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchDashboardData();
   }, []);
+
+  console.log("tourStatistics", tourStatistics);
+  console.log("categoryStatistics", categoryStatistics);
+  console.log("departureStatistics", departureStatistics);
+  console.log("destinationStatistics", destinationStatistics);
+  console.log("transportationStatistics", transportationStatistics);
+  console.log("orderStatistics", orderStatistics);
 
   const mostToursColumns = [
     {
@@ -97,16 +127,15 @@ function Dashboard() {
   ];
 
   const cancellationRateData = {
-    labels:
-      dashboardData.orders?.cancellationRate
-        ?.map((item) => `Tháng ${item.month}/${item.year}`)
-        .reverse() || [],
+    labels: (orderStatistics?.cancelRateStatistics || []).map(
+      (item) => `Tháng ${item.month}/${item.year}`,
+    ),
     datasets: [
       {
         label: "Tỷ lệ hủy",
         data:
-          dashboardData.orders?.cancellationRate
-            ?.map((item) => parseFloat(item.cancelRate))
+          (orderStatistics?.cancelRateStatistics || [])
+            .map((item) => parseFloat(item.cancelRate) || 0)
             .reverse() || [],
         backgroundColor: [
           "#FF5733",
@@ -140,18 +169,17 @@ function Dashboard() {
       },
     ],
   };
-  const orderStatsData = {
-    labels:
-      dashboardData.orders.revenueByMonth
-        ?.map((item) => `Tháng ${item.month}/${item.year}`)
-        .reverse() || [],
 
+  const orderStatsData = {
+    labels: (orderStatistics?.revenueStatistics || []).map(
+      (item) => `Tháng ${item.month}/${item.year}`,
+    ),
     datasets: [
       {
         label: "Doanh thu",
         data:
-          dashboardData.orders.revenueByMonth
-            ?.map((item) => parseFloat(item.revenue))
+          (orderStatistics?.revenueStatistics || [])
+            .map((item) => parseFloat(item.totalRevenue) || 0)
             .reverse() || [],
         fill: false,
         borderColor: "#42A5F5",
@@ -160,18 +188,18 @@ function Dashboard() {
       },
     ],
   };
+
   const revenueByMonthData = {
-    labels:
-      dashboardData.orders.revenueByMonth
-        ?.map((item) => `Tháng ${item.month}/${item.year}`)
-        .reverse() || [],
+    labels: (orderStatistics?.bookingCountStatistics || []).map(
+      (item) => `Tháng ${item.month}/${item.year}`,
+    ),
     datasets: [
       {
         label: "Số lượng đơn hàng",
         data:
-          dashboardData.orders.revenueByMonth?.map(
-            (item) => item.orderCount || 0
-          ) || [],
+          (orderStatistics?.bookingCountStatistics || [])
+            .map((item) => item.totalBookings || 0)
+            .reverse() || [],
         fill: false,
         borderColor: "#42A5F5",
         pointBackgroundColor: "#42A5F5",
@@ -179,37 +207,38 @@ function Dashboard() {
       },
     ],
   };
-  console.log(dashboardData);
+
   const orderStatusData = {
     labels: ["Đang chờ", "Đã xác nhận", "Đã hủy"],
     datasets: [
       {
         data: [
-          dashboardData.orders?.pendingOrders,
-          dashboardData.orders?.confirmedOrders,
-          dashboardData.orders?.canceledOrders,
+          orderStatistics.pendingBookings,
+          orderStatistics.confirmedBookings,
+          orderStatistics.cancelledBookings,
         ],
         backgroundColor: ["#FF6384", "#36A2EB", "#FFCD56"],
         hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCD56"],
       },
     ],
   };
-  const paymentMethodRevenueData = {
-    labels:
-      dashboardData.orders?.revenueByPaymentMethod?.map(
-        (item) => item.paymentMethod
-      ) || [],
-    datasets: [
-      {
-        data:
-          dashboardData.orders?.revenueByPaymentMethod?.map((item) =>
-            parseFloat(item.revenue)
-          ) || [],
-        backgroundColor: ["#FF6384", "#36A2EB", "#FFCD56", "#66BB6A"],
-        hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCD56", "#66BB6A"],
-      },
-    ],
-  };
+
+  // const paymentMethodRevenueData = {
+  //   labels:
+  //     dashboardData.orders?.revenueByPaymentMethod?.map(
+  //       (item) => item.paymentMethod,
+  //     ) || [],
+  //   datasets: [
+  //     {
+  //       data:
+  //         dashboardData.orders?.revenueByPaymentMethod?.map((item) =>
+  //           parseFloat(item.revenue),
+  //         ) || [],
+  //       backgroundColor: ["#FF6384", "#36A2EB", "#FFCD56", "#66BB6A"],
+  //       hoverBackgroundColor: ["#FF6384", "#36A2EB", "#FFCD56", "#66BB6A"],
+  //     },
+  //   ],
+  // };
 
   return (
     <div className="dashboard-container">
@@ -221,8 +250,8 @@ function Dashboard() {
             <h3>Tours</h3>
           </div>
           <div className="card-footer">
-            <span>Hoạt động: {dashboardData.tours.activeTours}</span>
-            <span>Không hoạt động: {dashboardData.tours.inactiveTours}</span>
+            <span>Hoạt động: {tourStatistics.active}</span>
+            <span>Không hoạt động: {tourStatistics.inactive}</span>
           </div>
         </div>
 
@@ -233,10 +262,8 @@ function Dashboard() {
             <h3>Danh mục</h3>
           </div>
           <div className="card-footer">
-            <span>Hoạt động: {dashboardData.categories.activeCategories}</span>
-            <span>
-              Không hoạt động: {dashboardData.categories.inactiveCategories}
-            </span>
+            <span>Hoạt động: {categoryStatistics.active}</span>
+            <span>Không hoạt động: {categoryStatistics.inactive}</span>
           </div>
         </div>
 
@@ -247,10 +274,8 @@ function Dashboard() {
             <h3>Điểm khởi hành</h3>
           </div>
           <div className="card-footer">
-            <span>Hoạt động: {dashboardData.departures.activeDepartures}</span>
-            <span>
-              Không hoạt động: {dashboardData.departures.inactiveDepartures}
-            </span>
+            <span>Hoạt động: {departureStatistics.active}</span>
+            <span>Không hoạt động: {departureStatistics.inactive}</span>
           </div>
         </div>
 
@@ -261,12 +286,8 @@ function Dashboard() {
             <h3>Điểm đến</h3>
           </div>
           <div className="card-footer">
-            <span>
-              Hoạt động: {dashboardData.destinations.activeDestinations}
-            </span>
-            <span>
-              Không hoạt động: {dashboardData.destinations.inactiveDestinations}
-            </span>
+            <span>Hoạt động: {destinationStatistics.active}</span>
+            <span>Không hoạt động: {destinationStatistics.inactive}</span>
           </div>
         </div>
 
@@ -277,13 +298,8 @@ function Dashboard() {
             <h3>Phương tiện</h3>
           </div>
           <div className="card-footer">
-            <span>
-              Hoạt động: {dashboardData.transportations.activeTransportations}
-            </span>
-            <span>
-              Không hoạt động:{" "}
-              {dashboardData.transportations.inactiveTransportations}
-            </span>
+            <span>Hoạt động: {transportationStatistics.active}</span>
+            <span>Không hoạt động: {transportationStatistics.inactive}</span>
           </div>
         </div>
       </div>
@@ -307,12 +323,12 @@ function Dashboard() {
             <Tabs.TabPane tab="Đơn hàng" key="1">
               <Doughnut className="doughnut" data={orderStatusData} />
             </Tabs.TabPane>
-            <Tabs.TabPane tab="Doanh thu theo phương thức thanh toán" key="2">
+            {/* <Tabs.TabPane tab="Doanh thu theo phương thức thanh toán" key="2">
               <PolarArea
                 data={paymentMethodRevenueData}
                 options={{ responsive: true }}
               />
-            </Tabs.TabPane>
+            </Tabs.TabPane> */}
           </Tabs>
         </div>
       </div>

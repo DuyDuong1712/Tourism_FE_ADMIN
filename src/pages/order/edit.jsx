@@ -23,9 +23,10 @@ function OrderEdit() {
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
-      const orderDetailResponse = await get(`orders/order-item/${orderId}`);
-      setStatus(orderDetailResponse?.order?.status);
-      setOrderDetail(orderDetailResponse);
+      // const orderDetailResponse = await get(`orders/order-item/${orderId}`);
+      const orderDetailResponse = await get(`bookings/${orderId}`);
+      setStatus(orderDetailResponse?.data?.status);
+      setOrderDetail(orderDetailResponse.data);
       setLoading(false);
     };
 

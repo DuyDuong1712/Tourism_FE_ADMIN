@@ -16,12 +16,12 @@ function OrderDetail() {
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
-        const orderDetailResponse = await get(`orders/order-item/${orderId}`);
+        const orderDetailResponse = await get(`bookings/${orderId}`);
         const tour = await get(
-          `tour_detail/${orderDetailResponse.orderItem.tourDetailId}/getTour`
+          `tours/${orderDetailResponse.data.tourId}/details`,
         );
-        setOrderDetail(orderDetailResponse);
-        setTourData(tour);
+        setOrderDetail(orderDetailResponse.data);
+        setTourData(tour.data);
       } catch (error) {
         console.error("Error fetching order details:", error);
       } finally {
@@ -40,10 +40,6 @@ function OrderDetail() {
     );
   }
 
-  const order = orderDetail?.order;
-  const transaction = orderDetail?.transaction;
-  const orderItem = orderDetail?.orderItem;
-
   return (
     <div style={{ padding: "20px" }}>
       <Button
@@ -59,27 +55,31 @@ function OrderDetail() {
       <Card title={<Title level={4}>Thông tin người đặt hàng</Title>} hoverable>
         <Row gutter={[16, 16]}>
           <Col span={12}>
-            <Text strong>Họ và tên:</Text> {order?.fullName}
+            <Text strong>Họ và tên:</Text> {orderDetail?.fullName}
           </Col>
           <Col span={12}>
-            <Text strong>Email:</Text> {order?.email}
+            <Text strong>Email:</Text> {orderDetail?.email}
           </Col>
           <Col span={12}>
-            <Text strong>Số điện thoại:</Text> {order?.phoneNumber}
+            <Text strong>Số điện thoại:</Text> {orderDetail?.phoneNumber}
           </Col>
           <Col span={12}>
-            <Text strong>Địa chỉ:</Text> {order?.address}
+            <Text strong>Địa chỉ:</Text> {orderDetail?.address}
           </Col>
           <Col span={12}>
             <Text strong>Trạng thái:</Text>{" "}
-            <Tag color={order?.status === "pending" ? "orange" : "green"}>
-              {order?.status.toUpperCase()}
+            <Tag
+              color={
+                orderDetail?.bookingStatus === "pending" ? "orange" : "green"
+              }
+            >
+              {orderDetail?.bookingStatus.toUpperCase()}
             </Tag>
           </Col>
           <Col span={12}>
             <Text strong>Ngày đặt:</Text>{" "}
-            {order?.createdAt
-              ? new Date(order?.createdAt).toLocaleString()
+            {orderDetail?.confirmedAt
+              ? new Date(orderDetail?.confirmedAt).toLocaleString()
               : "Chưa có ngày"}
           </Col>
         </Row>
@@ -91,20 +91,24 @@ function OrderDetail() {
       <Card title={<Title level={4}>Thông tin thanh toán</Title>} hoverable>
         <Row gutter={[16, 16]}>
           <Col span={12}>
-            <Text strong>Mã giao dịch:</Text> {transaction?.code}
+            <Text strong>Mã giao dịch:</Text> {orderDetail?.transactionId}
           </Col>
+          {/* <Col span={12}> */}
+          {/* <Text strong>Phương thức thanh toán:</Text>{" "} */}
+          {/* {orderDetail?.paymentMethod} */}
+          {/* </Col> */}
           <Col span={12}>
-            <Text strong>Phương thức thanh toán:</Text>{" "}
-            {transaction?.paymentMethod}
-          </Col>
-          <Col span={12}>
-            <Text strong>Số tiền:</Text> {transaction?.amount?.toLocaleString()}{" "}
-            VND
+            <Text strong>Số tiền:</Text>{" "}
+            {orderDetail?.totalAmount?.toLocaleString()} VND
           </Col>
           <Col span={12}>
             <Text strong>Trạng thái thanh toán:</Text>{" "}
-            <Tag color={transaction?.status === "pending" ? "orange" : "green"}>
-              {transaction?.status.toUpperCase()}
+            <Tag
+              color={
+                orderDetail?.paymentStatus === "pending" ? "orange" : "green"
+              }
+            >
+              {orderDetail?.paymentStatus.toUpperCase()}
             </Tag>
           </Col>
         </Row>
@@ -116,61 +120,117 @@ function OrderDetail() {
       <Card title={<Title level={4}>Thông tin đơn hàng</Title>} hoverable>
         <Row gutter={[16, 16]}>
           <Col span={12}>
-            <Text strong>Mã đơn hàng:</Text> {order?.code}
+            <Text strong>Mã đơn hàng:</Text> {orderDetail?.id}
           </Col>
           <Col span={12}>
-            <Text strong>Số lượng người lớn:</Text> {orderItem?.adultQuantity}
+            <Text strong>Số lượng người lớn:</Text> {orderDetail?.adultCount}
           </Col>
           <Col span={12}>
             <Text strong>Giá người lớn:</Text>{" "}
-            {orderItem?.adultPrice?.toLocaleString()} VND
+            {orderDetail?.adultPrice?.toLocaleString()} VND
           </Col>
           <Col span={12}>
-            <Text strong>Số lượng trẻ em:</Text> {orderItem?.childrenQuantity}
-          </Col>
-          <Col span={12}>
-            <Text strong>Giá trẻ em:</Text>{" "}
-            {orderItem?.childrenPrice?.toLocaleString()} VND
-          </Col>
-          <Col span={12}>
-            <Text strong>Số lượng trẻ nhỏ:</Text> {orderItem?.childQuantity}
+            <Text strong>Số lượng trẻ em:</Text> {orderDetail?.childrenCount}
           </Col>
           <Col span={12}>
             <Text strong>Giá trẻ em:</Text>{" "}
-            {orderItem?.childPrice?.toLocaleString()} VND
+            {orderDetail?.childrenPrice?.toLocaleString()} VND
           </Col>
           <Col span={12}>
-            <Text strong>Số lượng em bé:</Text> {orderItem?.babyQuantity}
+            <Text strong>Số lượng trẻ nhỏ:</Text> {orderDetail?.childCount}
+          </Col>
+          <Col span={12}>
+            <Text strong>Giá trẻ nhỏ:</Text>{" "}
+            {orderDetail?.childPrice?.toLocaleString()} VND
+          </Col>
+          <Col span={12}>
+            <Text strong>Số lượng em bé:</Text> {orderDetail?.babyCount}
           </Col>
           <Col span={12}>
             <Text strong>Giá em bé:</Text>{" "}
-            {orderItem?.babyPrice?.toLocaleString()} VND
+            {orderDetail?.babyPrice?.toLocaleString()} VND
           </Col>
           <Col span={24}>
-            <Text strong>Ghi chú:</Text> {orderItem?.note}
+            <Text strong>Ghi chú:</Text> {orderDetail?.note}
           </Col>
         </Row>
       </Card>
       <Divider />
 
+      {orderDetail.bookingStatus === "CANCELLED" && (
+        <>
+          <Card title={<Title level={4}>Thông tin hủy đơn</Title>} hoverable>
+            <Row gutter={[16, 16]}>
+              <Col span={12}>
+                <Text strong>Người hủy:</Text> {orderDetail?.cancelledBy}
+              </Col>
+              <Col span={12}>
+                <Text strong>Lí do hủy:</Text> {orderDetail?.cancellationReason}
+              </Col>
+              <Col span={12}>
+                <Text strong>Thời gian hủy:</Text>{" "}
+                {orderDetail?.cancelledAt
+                  ? new Date(orderDetail?.cancelledAt).toLocaleString()
+                  : "Chưa có ngày"}
+              </Col>
+              <Col span={12}>
+                <Text strong>Trạng thái hoàn tiền:</Text>{" "}
+                <Tag
+                  color={
+                    tourData?.refundStatus === "COMPLETED"
+                      ? "green"
+                      : tourData?.refundStatus === "PENDING"
+                        ? "orange"
+                        : tourData?.refundStatus === "FAILED"
+                          ? "red"
+                          : "yellow"
+                  }
+                >
+                  {tourData?.refundStatus === "COMPLETED"
+                    ? "Đã hoàn tiền"
+                    : tourData?.refundStatus === "PENDING"
+                      ? "Đang xử lý"
+                      : tourData?.refundStatus === "FAILED"
+                        ? "Thất bại"
+                        : "Không áp dụng"}
+                </Tag>
+              </Col>
+              <Col span={12}>
+                <Text strong>Tỷ lệ hoàn tiền:</Text>{" "}
+                {orderDetail?.refundPercent}
+              </Col>
+              <Col span={12}>
+                <Text strong>Số tiền hoàn trả:</Text>{" "}
+                {orderDetail?.refundAmount.toLocaleString()} VND
+              </Col>
+            </Row>
+          </Card>
+          <Divider />
+        </>
+      )}
+
       {/* Thông tin tour */}
       <Card title={<Title level={4}>Thông tin tour</Title>} hoverable>
         <Row gutter={[16, 16]}>
           <Col span={12}>
-            <Text strong>Tên tour:</Text> {tourData?.tour.title}
+            <Text strong>Tên tour:</Text> {tourData?.title}
             <br />
-            <Text strong>Mã tour:</Text> {tourData?.tour.code}
+            <Text strong>Danh mục tour:</Text> {tourData?.category}
+            <br />
+            <Text strong>Điểm khởi hành:</Text> {tourData?.departure}
+            <br />
+            <Text strong>Điểm đến:</Text> {tourData?.destination}
             <br />
             <Text strong>Trạng thái:</Text>{" "}
-            <Tag color={tourData?.tour.status ? "green" : "red"}>
-              {tourData?.tour.status ? "Đang hoạt động" : "Ngừng hoạt động"}
+            <Tag color={tourData?.inActive ? "green" : "red"}>
+              {tourData?.inActive ? "Đang hoạt động" : "Ngừng hoạt động"}
             </Tag>
           </Col>
           <Col span={12}>
             <img
-              src={tourData?.image?.source}
+              src={tourData?.images[0].imageUrl}
               alt="Tour Image"
-              style={{ width: "100%", borderRadius: "8px" }}
+              style={{ width: 100, height: 100 }}
             />
           </Col>
         </Row>
